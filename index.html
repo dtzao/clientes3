@@ -2,98 +2,138 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Espelho da Planilha</title>
-
+<title>Espelho da Planilha - Dashboard</title>
 <style>
-body {
-  background: #000;
-  color: #fff;
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-}
+  /* Reset básico */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-.container {
-  width: 100%;
-  max-width: 900px;
-}
+  body {
+    background-color: #121212;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+  }
 
-h1 {
-  text-align: center;
-  color: #0d6efd;
-  margin-bottom: 30px;
-}
+  .container {
+    width: 100%;
+    max-width: 1000px;
+  }
 
-.linha {
-  display: flex;
-  align-items: flex-start;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 6px;
-  padding: 12px;
-  margin-bottom: 8px;
-  gap: 12px;
-}
+  h1 {
+    text-align: center;
+    color: #0d6efd;
+    margin-bottom: 30px;
+    font-size: 2rem;
+  }
 
-.texto {
-  flex: 1;
-  white-space: pre-wrap;
-  font-size: 14px;
-  color: #ddd;
-}
+  #lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
 
-.remover {
-  background: #ff4d4d;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  height: 30px;
-}
+  .card {
+    background: #1e1e1e;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: transform 0.2s, opacity 0.3s, box-shadow 0.2s;
+    cursor: default;
+  }
 
-.remover:hover {
-  opacity: 0.85;
-}
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+  }
+
+  .texto {
+    font-size: 15px;
+    color: #f0f0f0;
+    margin-bottom: 12px;
+    word-break: break-word;
+  }
+
+  .remover {
+    align-self: flex-end;
+    background-color: #ff4d4d;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+  }
+
+  .remover:hover {
+    background-color: #e04444;
+    transform: scale(1.05);
+  }
+
+  /* Cores diferentes para cada card usando nth-child */
+  .card:nth-child(3n+1) { background-color: #2e2b5f; }
+  .card:nth-child(3n+2) { background-color: #4a2e3d; }
+  .card:nth-child(3n+3) { background-color: #2e4a3d; }
+
+  /* Mensagem de erro */
+  .erro {
+    text-align: center;
+    color: #ff6b6b;
+    font-weight: bold;
+    margin-top: 20px;
+  }
+
+  /* Animação de remoção */
+  .removendo {
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  @media (max-width: 600px) {
+    #lista {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 </head>
-
 <body>
 
-<div class="container">
+<main class="container">
   <h1>Espelho da Planilha</h1>
-  <div id="lista"></div>
-</div>
+  <section id="lista"></section>
+</main>
 
 <script>
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQsvYJf3XE6CzmXSTOfoDw0CbI0aqSaz5ddWDjeUq9iU88n73m8wI-Fs_ZMh6wMg3d4wUnZhBbv9Erd/pub?output=csv';
 
 fetch(CSV_URL)
-  .then(r => r.text())
+  .then(response => response.text())
   .then(csv => {
     const lista = document.getElementById('lista');
     lista.innerHTML = '';
 
-    const linhas = csv.split('\n');
+    const linhas = csv.split(/\r?\n/).filter(l => l.trim());
 
     linhas.forEach(linha => {
-      linha = linha.replace(/\r/g, '').trim();
-      if (!linha) return;
-
-      // remove aspas externas do CSV
-      linha = linha.replace(/^"|"$/g, '');
-
-      // separa colunas (cada célula)
-      const colunas = linha.split('","');
+      const colunas = linha.replace(/^"|"$/g, '').split('","');
 
       colunas.forEach(texto => {
         texto = texto.trim();
         if (!texto) return;
 
-        const div = document.createElement('div');
-        div.className = 'linha';
+        const card = document.createElement('div');
+        card.className = 'card';
 
         const span = document.createElement('div');
         span.className = 'texto';
@@ -102,17 +142,20 @@ fetch(CSV_URL)
         const btn = document.createElement('button');
         btn.className = 'remover';
         btn.textContent = 'Remover';
-        btn.onclick = () => div.remove();
+        btn.onclick = () => {
+          card.classList.add('removendo');
+          setTimeout(() => card.remove(), 300);
+        }
 
-        div.appendChild(span);
-        div.appendChild(btn);
-        lista.appendChild(div);
+        card.appendChild(span);
+        card.appendChild(btn);
+        lista.appendChild(card);
       });
     });
   })
   .catch(() => {
-    document.getElementById('lista').innerHTML =
-      '<p>Erro ao carregar a planilha.</p>';
+    document.getElementById('lista').innerHTML = 
+      '<p class="erro">Erro ao carregar a planilha.</p>';
   });
 </script>
 
