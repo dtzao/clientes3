@@ -30,6 +30,7 @@ body {
   border-radius: 8px;
   margin-bottom: 15px;
   box-shadow: 0 0 10px rgba(255,255,255,0.1);
+  position: relative;
   text-align: left;
 }
 
@@ -54,6 +55,19 @@ body {
   border-top: 1px solid #333;
   padding-top: 10px;
 }
+
+.remover {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ff4d4d;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -65,7 +79,7 @@ body {
 </div>
 
 <script>
-const CSV_URL = const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQsvYJf3XE6CzmXSTOfoDw0CbI0aqSaz5ddWDjeUq9iU88n73m8wI-Fs_ZMh6wMg3d4wUnZhBbv9Erd/pub?output=csv';
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQsvYJf3XE6CzmXSTOfoDw0CbI0aqSaz5ddWDjeUq9iU88n73m8wI-Fs_ZMh6wMg3d4wUnZhBbv9Erd/pub?output=csv';
 
 function extrairDados(texto) {
   const nomeMatch = texto.match(/Usu[aá]rio:\s*(.*)/i);
@@ -80,25 +94,43 @@ function extrairDados(texto) {
 fetch(CSV_URL)
   .then(r => r.text())
   .then(csv => {
-    const linhas = csv.split('\n');
     const lista = document.getElementById('listaClientes');
     lista.innerHTML = '';
 
+    // separa linhas
+    const linhas = csv.split('\n');
+
     linhas.forEach(linha => {
-      const texto = linha.trim();
-      if (!texto) return;
+      // remove aspas extras
+      linha = linha.replace(/^"|"$/g, '').trim();
+      if (!linha) return;
 
-      const { nome, data } = extrairDados(texto);
+      // cada coluna pode ter um "quadrado"
+      const colunas = linha.split('","');
 
-      const div = document.createElement('div');
-      div.className = 'cliente';
-      div.innerHTML = `
-        <div class="nome">${nome}</div>
-        <div class="vencimento">Vencimento: ${data}</div>
-        <div class="texto-original">${texto}</div>
-      `;
+      colunas.forEach(texto => {
+        texto = texto.trim();
+        if (!texto) return;
 
-      lista.appendChild(div);
+        const { nome, data } = extrairDados(texto);
+
+        const div = document.createElement('div');
+        div.className = 'cliente';
+
+        const btn = document.createElement('button');
+        btn.className = 'remover';
+        btn.textContent = 'Remover';
+        btn.onclick = () => div.remove();
+
+        div.innerHTML = `
+          <div class="nome">${nome}</div>
+          <div class="vencimento">Vencimento: ${data}</div>
+          <div class="texto-original">${texto}</div>
+        `;
+
+        div.appendChild(btn);
+        lista.appendChild(div);
+      });
     });
   })
   .catch(err => {
