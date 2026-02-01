@@ -25,7 +25,6 @@
     font-size: 2rem;
   }
 
-  /* Campo de pesquisa */
   #filtro {
     width: 100%;
     padding: 10px 14px;
@@ -83,7 +82,6 @@
     transform: scale(1.05);
   }
 
-  /* Cores diferentes para cada card */
   .card:nth-child(3n+1) { background-color: #2e2b5f; }
   .card:nth-child(3n+2) { background-color: #4a2e3d; }
   .card:nth-child(3n+3) { background-color: #2e4a3d; }
@@ -125,20 +123,19 @@ fetch(CSV_URL)
     const lista = document.getElementById('lista');
     lista.innerHTML = '';
 
-    const linhas = csv.split(/\r?\n/).filter(l => l.trim());
+    // Processa cada linha do CSV
+    const linhas = csv
+      .split(/\r?\n/)
+      .map(l => l.replace(/^"|"$/g, '').trim())       // remove aspas externas
+      .filter(l => l && l.replace(/,/g, '').trim() !== ''); // ignora linhas vazias ou só com vírgulas
 
     linhas.forEach(linha => {
-      linha = linha.replace(/^"|"$/g, '').trim(); // remove aspas externas
-
-      if (!linha) return;
-
       const card = document.createElement('div');
       card.className = 'card';
 
       const span = document.createElement('div');
       span.className = 'texto';
-      // Mantém quebras de linha no card
-      span.innerHTML = linha.replace(/\n/g, '<br>');
+      span.innerHTML = linha.replace(/\n/g, '<br>'); // mantém quebras de linha
 
       const btn = document.createElement('button');
       btn.className = 'remover';
