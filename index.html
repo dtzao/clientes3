@@ -82,10 +82,6 @@
     transform: scale(1.05);
   }
 
-  .card:nth-child(3n+1) { background-color: #2e2b5f; }
-  .card:nth-child(3n+2) { background-color: #4a2e3d; }
-  .card:nth-child(3n+3) { background-color: #2e4a3d; }
-
   .erro {
     text-align: center;
     color: #ff6b6b;
@@ -117,25 +113,40 @@ const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQsvYJf3XE6CzmX
 
 let cards = [];
 
+// Defina aqui os blocos que quer transformar em cards
+// Cada bloco é: { linhaInicio, linhaFim, colInicio, colFim }
+// Colunas: 1 = A, 2 = B, etc.
+const blocos = [
+  { linhaInicio: 2, linhaFim: 7, colInicio: 2, colFim: 4 },
+  { linhaInicio: 9, linhaFim: 14, colInicio: 2, colFim: 4 },
+  { linhaInicio: 16, linhaFim: 21, colInicio: 2, colFim: 4 }
+  // Adicione mais blocos aqui
+];
+
 fetch(CSV_URL)
   .then(response => response.text())
   .then(csv => {
     const lista = document.getElementById('lista');
     lista.innerHTML = '';
 
-    // Processa cada linha do CSV
-    const linhas = csv
-      .split(/\r?\n/)
-      .map(l => l.replace(/^"|"$/g, '').trim())       // remove aspas externas
-      .filter(l => l && l.replace(/,/g, '').trim() !== ''); // ignora linhas vazias ou só com vírgulas
+    // Transformar CSV em array 2D
+    const linhas = csv.split(/\r?\n/).map(l => l.replace(/^"|"$/g, '').split(','));
 
-    linhas.forEach(linha => {
+    // Função que cria um card a partir de um bloco
+    function criarCard(linhaInicio, linhaFim, colInicio, colFim) {
       const card = document.createElement('div');
       card.className = 'card';
 
-      const span = document.createElement('div');
-      span.className = 'texto';
-      span.innerHTML = linha.replace(/\n/g, '<br>'); // mantém quebras de linha
+      const textoDiv = document.createElement('div');
+      textoDiv.className = 'texto';
+
+      // Monta o conteúdo do card
+      const conteudo = linhas
+        .slice(linhaInicio - 1, linhaFim)
+        .map(l => l.slice(colInicio - 1, colFim).join(' | '))
+        .join('<br>');
+
+      textoDiv.innerHTML = conteudo;
 
       const btn = document.createElement('button');
       btn.className = 'remover';
@@ -146,13 +157,17 @@ fetch(CSV_URL)
           card.remove();
           cards = cards.filter(c => c !== card);
         }, 300);
-      }
+      };
 
-      card.appendChild(span);
+      card.appendChild(textoDiv);
       card.appendChild(btn);
       lista.appendChild(card);
       cards.push(card);
-    });
+    }
+
+    // Criar cards para todos os blocos definidos
+    blocos.forEach(b => criarCard(b.linhaInicio, b.linhaFim, b.colInicio, b.colFim));
+
   })
   .catch(() => {
     document.getElementById('lista').innerHTML = 
