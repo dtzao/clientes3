@@ -116,12 +116,19 @@ let cards = [];
 // Defina aqui os blocos que quer transformar em cards
 // Cada bloco é: { linhaInicio, linhaFim, colInicio, colFim }
 // Colunas: 1 = A, 2 = B, etc.
-const blocos = [
-  { linhaInicio: 2, linhaFim: 7, colInicio: 2, colFim: 4 },
-  { linhaInicio: 9, linhaFim: 14, colInicio: 2, colFim: 4 },
-  { linhaInicio: 16, linhaFim: 21, colInicio: 2, colFim: 4 }
-  // Adicione mais blocos aqui
-];
+const blocos = [];
+
+let linhaInicio = 2;
+const linhasPorBloco = 6; // cada bloco tem 6 linhas
+const colInicio = 2;
+const colFim = 4;
+const linhaFimMax = 302;
+
+while (linhaInicio <= linhaFimMax) {
+  const linhaFim = linhaInicio + linhasPorBloco - 1;
+  blocos.push({ linhaInicio, linhaFim, colInicio, colFim });
+  linhaInicio += linhasPorBloco + 1; // pula 1 linha entre blocos
+}
 
 fetch(CSV_URL)
   .then(response => response.text())
@@ -186,3 +193,4 @@ document.getElementById('filtro').addEventListener('input', e => {
 
 </body>
 </html>
+
